@@ -1,0 +1,12 @@
+# logs/.htaccess - Запрет доступа к логам
+
+# Полный запрет доступа извне
+Order Deny,Allow
+Deny from all
+
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+
+# Также запрещаем просмотр списка файлов
+Options -Indexes

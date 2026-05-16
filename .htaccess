@@ -1,0 +1,30 @@
+# .htaccess - Исправленная версия (без DirectoryMatch)
+
+<IfModule mod_headers.c>
+    Header unset X-Powered-By
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Запрет просмотра директорий
+Options -Indexes
+
+# Защита конфигурационных файлов
+<FilesMatch "\.(ini|log|sql|bak|config|env)$">
+    Require all denied
+</FilesMatch>
+
+# Защита .htaccess файлов
+<FilesMatch "^\.ht">
+    Require all denied
+</FilesMatch>
+
+# Включение rewrite
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # Защита от directory traversal
+    RewriteCond %{QUERY_STRING} (\.\./|\.\.\\) [NC,OR]
+    RewriteCond %{QUERY_STRING} (boot\.ini|etc/passwd) [NC]
+    RewriteRule .* - [F,L]
+</IfModule>

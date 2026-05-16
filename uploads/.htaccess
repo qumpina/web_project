@@ -1,0 +1,39 @@
+# uploads/.htaccess - Защита папки с загрузками
+
+# Запрет выполнения PHP в папке uploads
+<IfModule mod_php5.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag engine off
+</IfModule>
+
+# Запрет прямого доступа к файлам (только через скрипты)
+Options -Indexes
+
+# Блокировка всех потенциально опасных файлов
+<FilesMatch "\.(php|phtml|php3|php4|php5|phps|pl|py|jsp|asp|htm|html|shtml|sh|cgi|exe|dll)$">
+    Order Deny,Allow
+    Deny from all
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+</FilesMatch>
+
+# Разрешаем только изображения и безопасные типы
+<FilesMatch "\.(jpg|jpeg|png|gif|webp|pdf|txt)$">
+    Order Allow,Deny
+    Allow from all
+    <IfModule mod_authz_core.c>
+        Require all granted
+    </IfModule>
+</FilesMatch>
+
+# Добавляем заголовки безопасности для загруженных файлов
+<FilesMatch "\.(jpg|jpeg|png|gif|webp)$">
+    Header set X-Content-Type-Options "nosniff"
+    Header set Content-Security-Policy "default-src 'none'"
+</FilesMatch>
