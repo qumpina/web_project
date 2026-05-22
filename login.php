@@ -179,7 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($error)) {
             <button type="submit">Войти</button>
         </form>
         
-        <a href="index.php" class="back-link">← Вернуться к форме</a>
+        <a href="index.html" class="back-link">← Вернуться к форме</a>
     </div>
 </body>
 </html>

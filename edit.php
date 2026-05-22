@@ -156,8 +156,8 @@ $languages_list = getAllowedLanguages();
         <h2>Редактирование анкеты</h2>
         <div class="user-info">
             Вы вошли как: <strong><?php echo escapeHtml($_SESSION['user_login']); ?></strong>
-            <a href="logout.php" class="btn-link">Выйти</a>
-            <a href="index.php" class="btn-link">На главную</a>
+            <a href="login.php" class="btn-link">Выйти</a>
+            <a href="index.html" class="btn-link">На главную</a>
         </div>
     </div>
     

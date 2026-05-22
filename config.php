@@ -1,16 +1,15 @@
 <?php
 // config.php
-session_start(); // Добавлено для CSRF и сессий
+session_start();
 
 define('DB_HOST', 'localhost');
 define('DB_USER', 'u82092');
 define('DB_PASS', '1557612');
 define('DB_NAME', 'u82092');
-
-// Режим отладки (выключить в production)
 define('DEBUG_MODE', false);
 
-// Настройка отображения ошибок (скрытие информации)
+
+// Настройка отображения ошибок
 ini_set('display_errors', DEBUG_MODE ? 1 : 0);
 ini_set('display_startup_errors', DEBUG_MODE ? 1 : 0);
 error_reporting(E_ALL);
@@ -40,27 +39,21 @@ try {
     }
 }
 
-// ==================== ЗАЩИТА ОТ XSS ====================
+// ==================== ЗАЩИТНЫЕ ФУНКЦИИ ====================
 
-// Функция для экранирования HTML-символов
 function escapeHtml($string) {
     if ($string === null) return '';
     return htmlspecialchars((string)$string, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 }
 
-// Функция для экранирования JavaScript
 function escapeJs($string) {
     return json_encode($string, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 }
 
-// Функция для очистки вывода в атрибутах
 function escapeAttr($string) {
     return htmlspecialchars((string)$string, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 }
 
-// ==================== ЗАЩИТА ОТ CSRF ====================
-
-// Генерация CSRF-токена
 function generateCsrfToken() {
     if (empty($_SESSION['csrf_token'])) {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -68,7 +61,6 @@ function generateCsrfToken() {
     return $_SESSION['csrf_token'];
 }
 
-// Проверка CSRF-токена
 function verifyCsrfToken($token) {
     if (!isset($_SESSION['csrf_token']) || !isset($token)) {
         return false;
@@ -76,14 +68,10 @@ function verifyCsrfToken($token) {
     return hash_equals($_SESSION['csrf_token'], $token);
 }
 
-// Вывод поля CSRF в форме
 function csrfField() {
     return '<input type="hidden" name="csrf_token" value="' . escapeAttr(generateCsrfToken()) . '">';
 }
 
-// ==================== ЗАЩИТА ОТ SQL INJECTION ====================
-
-// Безопасное получение целочисленного ID
 function getSafeInt($value, $default = 0) {
     if (is_numeric($value) && $value > 0 && $value <= PHP_INT_MAX) {
         return (int)$value;
@@ -91,79 +79,142 @@ function getSafeInt($value, $default = 0) {
     return $default;
 }
 
-// Валидация поля сортировки через белый список
-function validateSortField($field, $allowedFields, $default = 'id') {
-    if (in_array($field, $allowedFields, true)) {
-        return $field;
-    }
-    return $default;
-}
-
-// Валидация направления сортировки
-function validateSortOrder($order, $default = 'DESC') {
-    $allowed = ['ASC', 'DESC'];
-    return in_array(strtoupper($order), $allowed, true) ? strtoupper($order) : $default;
-}
-
-// Валидация имени языка программирования
-function validateLanguageName($langName, $allowedLanguages) {
-    return in_array($langName, $allowedLanguages, true) ? $langName : null;
-}
-
-// ==================== ЗАЩИТА ОТ INFORMATION DISCLOSURE ====================
-
-// Безопасный вывод ошибок
-function showError($message, $debugInfo = null) {
-    if (DEBUG_MODE === true) {
-        echo '<div class="error">' . escapeHtml($message);
-        if ($debugInfo) {
-            echo '<br><small>' . escapeHtml($debugInfo) . '</small>';
-        }
-        echo '</div>';
-    } else {
-        error_log("Error: " . $message . " | " . ($debugInfo ?? ''));
-        echo '<div class="error">Произошла ошибка. Администратор уведомлен.</div>';
-    }
-}
-
-// ==================== ЗАЩИТНЫЕ HTTP-ЗАГОЛОВКИ ====================
-
 function setSecurityHeaders() {
-    // Защита от MIME-типов
     if (!headers_sent()) {
         header('X-Content-Type-Options: nosniff');
-        
-        // Защита от clickjacking
         header('X-Frame-Options: SAMEORIGIN');
-        
-        // XSS-защита браузера
         header('X-XSS-Protection: 1; mode=block');
-        
-        // Referrer Policy
         header('Referrer-Policy: strict-origin-when-cross-origin');
-        
-        // Удаление информации о сервере
         header_remove('Server');
+        header_remove('X-Powered-By');
     }
 }
 
-// ==================== ЗАЩИТА ОТ INCLUDE ====================
+// ==================== ВАЛИДАЦИОННЫЕ ФУНКЦИИ ====================
 
-// Безопасное включение файлов через белый список
-function safeInclude($page, $allowedPages) {
-    if (in_array($page, $allowedPages, true)) {
-        $filePath = __DIR__ . '/pages/' . $page . '.php';
-        if (file_exists($filePath) && strpos(realpath($filePath), __DIR__) === 0) {
-            include $filePath;
-            return true;
+function getAllowedLanguages() {
+    return ['Pascal', 'C', 'C++', 'JavaScript', 'PHP', 'Python', 
+            'Java', 'Haskell', 'Clojure', 'Prolog', 'Scala', 'Go'];
+}
+
+function validateFullName($full_name) {
+    $full_name = trim($full_name);
+    if (empty($full_name)) {
+        return ['valid' => false, 'error' => 'ФИО обязательно для заполнения'];
+    }
+    if (!preg_match('/^[а-яА-ЯёЁa-zA-Z\s-]{2,150}$/u', $full_name)) {
+        return ['valid' => false, 'error' => 'ФИО должно содержать только буквы, пробелы и дефисы (от 2 до 150 символов)'];
+    }
+    return ['valid' => true, 'value' => $full_name];
+}
+
+function validatePhone($phone) {
+    $phone = trim($phone);
+    if (empty($phone)) {
+        return ['valid' => false, 'error' => 'Телефон обязателен для заполнения'];
+    }
+    if (!preg_match('/^[0-9+\-\s]{10,20}$/', $phone)) {
+        return ['valid' => false, 'error' => 'Телефон должен содержать только цифры, +, - и пробелы (от 10 до 20 символов)'];
+    }
+    return ['valid' => true, 'value' => $phone];
+}
+
+function validateEmail($email) {
+    $email = trim($email);
+    if (empty($email)) {
+        return ['valid' => false, 'error' => 'Email обязателен для заполнения'];
+    }
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        return ['valid' => false, 'error' => 'Введите корректный email адрес'];
+    }
+    return ['valid' => true, 'value' => $email];
+}
+
+function validateBirthDate($birth_date) {
+    if (empty($birth_date)) {
+        return ['valid' => false, 'error' => 'Дата рождения обязательна для заполнения'];
+    }
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $birth_date)) {
+        return ['valid' => false, 'error' => 'Неверный формат даты. Используйте ГГГГ-ММ-ДД'];
+    }
+    return ['valid' => true, 'value' => $birth_date];
+}
+
+function validateGender($gender) {
+    if (empty($gender)) {
+        return ['valid' => false, 'error' => 'Выберите пол'];
+    }
+    if (!in_array($gender, ['male', 'female'])) {
+        return ['valid' => false, 'error' => 'Недопустимое значение пола'];
+    }
+    return ['valid' => true, 'value' => $gender];
+}
+
+function validateLanguages($languages, $allowedLanguages) {
+    if (empty($languages) || !is_array($languages)) {
+        return ['valid' => false, 'error' => 'Выберите хотя бы один язык программирования'];
+    }
+    
+    $validLanguages = [];
+    foreach ($languages as $langName) {
+        if (in_array($langName, $allowedLanguages, true)) {
+            $validLanguages[] = $langName;
         }
     }
-    return false;
+    
+    if (empty($validLanguages)) {
+        return ['valid' => false, 'error' => 'Выбраны недопустимые языки программирования'];
+    }
+    
+    return ['valid' => true, 'value' => $validLanguages];
 }
 
-// ==================== ОСНОВНЫЕ ФУНКЦИИ ПРОЕКТА ====================
+function validateBiography($biography) {
+    $biography = trim($biography ?? '');
+    if (strlen($biography) > 5000) {
+        return ['valid' => false, 'error' => 'Биография не должна превышать 5000 символов'];
+    }
+    return ['valid' => true, 'value' => $biography];
+}
 
-// Функция для генерации логина
+function validateApplicationData($data) {
+    $errors = [];
+    $validData = [];
+    $allowedLanguages = getAllowedLanguages();
+    
+    $result = validateFullName($data['full_name'] ?? '');
+    if (!$result['valid']) $errors['full_name'] = $result['error'];
+    else $validData['full_name'] = $result['value'];
+    
+    $result = validatePhone($data['phone'] ?? '');
+    if (!$result['valid']) $errors['phone'] = $result['error'];
+    else $validData['phone'] = $result['value'];
+    
+    $result = validateEmail($data['email'] ?? '');
+    if (!$result['valid']) $errors['email'] = $result['error'];
+    else $validData['email'] = $result['value'];
+    
+    $result = validateBirthDate($data['birth_date'] ?? '');
+    if (!$result['valid']) $errors['birth_date'] = $result['error'];
+    else $validData['birth_date'] = $result['value'];
+    
+    $result = validateGender($data['gender'] ?? '');
+    if (!$result['valid']) $errors['gender'] = $result['error'];
+    else $validData['gender'] = $result['value'];
+    
+    $result = validateLanguages($data['languages'] ?? [], $allowedLanguages);
+    if (!$result['valid']) $errors['languages'] = $result['error'];
+    else $validData['languages'] = $result['value'];
+    
+    $result = validateBiography($data['biography'] ?? '');
+    if (!$result['valid']) $errors['biography'] = $result['error'];
+    else $validData['biography'] = $result['value'];
+    
+    return ['errors' => $errors, 'valid_data' => $validData];
+}
+
+// ==================== БИЗНЕС-ФУНКЦИИ ====================
+
 function generateLogin($full_name) {
     $clean_name = preg_replace('/[^a-zA-Z]/', '', $full_name);
     if (strlen($clean_name) < 4) {
@@ -174,7 +225,6 @@ function generateLogin($full_name) {
     return strtolower($login);
 }
 
-// Функция для генерации пароля
 function generatePassword($length = 10) {
     $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
     $password = '';
@@ -185,13 +235,11 @@ function generatePassword($length = 10) {
     return $password;
 }
 
-// Функция для получения всех языков
 function getAllLanguages($pdo) {
     $stmt = $pdo->query("SELECT id, name FROM programming_languages ORDER BY name");
     return $stmt->fetchAll();
 }
 
-// Функция для получения языков пользователя
 function getUserLanguages($pdo, $application_id) {
     $stmt = $pdo->prepare("
         SELECT pl.name FROM application_languages al
@@ -202,79 +250,150 @@ function getUserLanguages($pdo, $application_id) {
     return $stmt->fetchAll(PDO::FETCH_COLUMN);
 }
 
-// Функция для получения всех заявок (с безопасной сортировкой)
-function getAllApplications($pdo, $sort = 'created_at', $order = 'DESC') {
-    $allowedSort = ['id', 'full_name', 'created_at', 'email', 'birth_date'];
-    $allowedOrder = ['ASC', 'DESC'];
-    
-    $sort = validateSortField($sort, $allowedSort, 'created_at');
-    $order = validateSortOrder($order, 'DESC');
-    
-    $stmt = $pdo->query("
-        SELECT a.* FROM application a 
-        ORDER BY $sort $order
-    ");
-    return $stmt->fetchAll();
+function createApplication($pdo, $validData) {
+    try {
+        $pdo->beginTransaction();
+        
+        $stmt = $pdo->prepare("
+            INSERT INTO application (full_name, phone, email, birth_date, gender, biography, contract_accepted, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, 1, NOW())
+        ");
+        $stmt->execute([
+            $validData['full_name'],
+            $validData['phone'],
+            $validData['email'],
+            $validData['birth_date'],
+            $validData['gender'],
+            $validData['biography']
+        ]);
+        
+        $application_id = $pdo->lastInsertId();
+        
+        $lang_stmt = $pdo->prepare("INSERT INTO application_languages (application_id, language_id) VALUES (?, ?)");
+        foreach ($validData['languages'] as $lang_name) {
+            $lang_id_stmt = $pdo->prepare("SELECT id FROM programming_languages WHERE name = ?");
+            $lang_id_stmt->execute([$lang_name]);
+            $lang_id = $lang_id_stmt->fetchColumn();
+            if ($lang_id) {
+                $lang_stmt->execute([$application_id, $lang_id]);
+            }
+        }
+        
+        $login = generateLogin($validData['full_name']);
+        $password = generatePassword();
+        $password_hash = password_hash($password, PASSWORD_DEFAULT);
+        
+        $user_stmt = $pdo->prepare("INSERT INTO application_users (application_id, login, password_hash) VALUES (?, ?, ?)");
+        $user_stmt->execute([$application_id, $login, $password_hash]);
+        
+        $pdo->commit();
+        
+        return [
+            'success' => true,
+            'application_id' => $application_id,
+            'login' => $login,
+            'password' => $password,
+            'profile_url' => '/edit.php'
+        ];
+        
+    } catch (PDOException $e) {
+        $pdo->rollBack();
+        error_log("Create application error: " . $e->getMessage());
+        return ['success' => false, 'error' => 'Ошибка при сохранении данных'];
+    }
 }
 
-// Функция для статистики по языкам
-function getLanguageStats($pdo) {
-    $stmt = $pdo->query("
-        SELECT pl.name, COUNT(al.language_id) as count
-        FROM programming_languages pl
-        LEFT JOIN application_languages al ON pl.id = al.language_id
-        GROUP BY pl.id
-        ORDER BY count DESC, pl.name
-    ");
-    return $stmt->fetchAll();
+function updateApplication($pdo, $application_id, $validData) {
+    try {
+        $pdo->beginTransaction();
+        
+        $stmt = $pdo->prepare("
+            UPDATE application 
+            SET full_name = ?, phone = ?, email = ?, birth_date = ?, gender = ?, biography = ?
+            WHERE id = ?
+        ");
+        $stmt->execute([
+            $validData['full_name'],
+            $validData['phone'],
+            $validData['email'],
+            $validData['birth_date'],
+            $validData['gender'],
+            $validData['biography'],
+            $application_id
+        ]);
+        
+        $pdo->prepare("DELETE FROM application_languages WHERE application_id = ?")->execute([$application_id]);
+        
+        $lang_stmt = $pdo->prepare("INSERT INTO application_languages (application_id, language_id) VALUES (?, ?)");
+        foreach ($validData['languages'] as $lang_name) {
+            $lang_id_stmt = $pdo->prepare("SELECT id FROM programming_languages WHERE name = ?");
+            $lang_id_stmt->execute([$lang_name]);
+            $lang_id = $lang_id_stmt->fetchColumn();
+            if ($lang_id) {
+                $lang_stmt->execute([$application_id, $lang_id]);
+            }
+        }
+        
+        $pdo->commit();
+        
+        return ['success' => true];
+        
+    } catch (PDOException $e) {
+        $pdo->rollBack();
+        error_log("Update application error: " . $e->getMessage());
+        return ['success' => false, 'error' => 'Ошибка при обновлении данных'];
+    }
 }
 
-// Функция для проверки администратора через БД
-function checkAdminAuth($pdo) {
-    if (empty($_SERVER['PHP_AUTH_USER']) || empty($_SERVER['PHP_AUTH_PW'])) {
-        return false;
+function getApplication($pdo, $application_id) {
+    $stmt = $pdo->prepare("SELECT * FROM application WHERE id = ?");
+    $stmt->execute([$application_id]);
+    $application = $stmt->fetch();
+    
+    if (!$application) {
+        return null;
     }
     
-    $login = $_SERVER['PHP_AUTH_USER'];
-    $password = $_SERVER['PHP_AUTH_PW'];
+    $application['languages'] = getUserLanguages($pdo, $application_id);
     
-    $stmt = $pdo->prepare("SELECT password_hash FROM admin_users WHERE login = ?");
+    return $application;
+}
+
+function authenticateUser($pdo, $login, $password) {
+    $stmt = $pdo->prepare("
+        SELECT au.id, au.application_id, au.login, au.password_hash
+        FROM application_users au
+        WHERE au.login = ?
+    ");
     $stmt->execute([$login]);
-    $admin = $stmt->fetch();
+    $user = $stmt->fetch();
     
-    if ($admin && password_verify($password, $admin['password_hash'])) {
-        return true;
+    if ($user && password_verify($password, $user['password_hash'])) {
+        return $user;
     }
-    return false;
+    
+    return null;
 }
 
-// Функция для HTTP-аутентификации администратора
-function authenticateAdmin($pdo) {
-    if (!checkAdminAuth($pdo)) {
-        header('HTTP/1.1 401 Unauthorized');
-        header('WWW-Authenticate: Basic realm="Admin Panel"');
-        echo '<!DOCTYPE html>
-        <html>
-        <head><title>401 Требуется авторизация</title>
-        <style>
-            body { font-family: Arial; text-align: center; padding: 50px; background: #f5f5f5; }
-            .error { background: #fee; color: #c33; padding: 20px; border-radius: 8px; display: inline-block; }
-        </style>
-        </head>
-        <body>
-            <div class="error">
-                <h1>401 Требуется авторизация</h1>
-                <p>Доступ разрешен только администраторам</p>
-            </div>
-        </body>
-        </html>';
-        exit();
+function getAuthenticatedUser($pdo) {
+    if (!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) {
+        return null;
     }
+    
+    return authenticateUser($pdo, $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
 }
 
-// Белый список разрешенных языков программирования
-function getAllowedLanguages() {
-    return ['Pascal', 'C', 'C++', 'JavaScript', 'PHP', 'Python', 
-            'Java', 'Haskell', 'Clojure', 'Prolog', 'Scala', 'Go'];
+// API Response функции (только здесь, не в api.php)
+function sendJsonResponse($data, $statusCode = 200) {
+    http_response_code($statusCode);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    exit();
 }
+
+function sendJsonError($message, $statusCode = 400) {
+    sendJsonResponse(['error' => $message], $statusCode);
+}
+
+setSecurityHeaders();
 ?>

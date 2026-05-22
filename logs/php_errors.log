@@ -1,1 +1,26 @@
 [16-May-2026 22:11:25 Europe/Berlin] Database connection error: SQLSTATE[HY000] [1045] Access denied for user 'u82092'@'localhost' (using password: YES)
+[16-May-2026 23:23:16 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function getAllApplications() in C:\xampp\htdocs\project\admin.php:134
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\project\admin.php on line 134
+[16-May-2026 23:23:18 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function getAllApplications() in C:\xampp\htdocs\project\admin.php:134
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\project\admin.php on line 134
+[16-May-2026 23:34:28 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function validateLanguageName() in C:\xampp\htdocs\project\index.php:98
+Stack trace:
+#0 C:\xampp\htdocs\project\index.php(132): validateData(Array)
+#1 {main}
+  thrown in C:\xampp\htdocs\project\index.php on line 98
+[16-May-2026 23:51:46 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function getAllApplications() in C:\xampp\htdocs\project\admin.php:134
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\project\admin.php on line 134
+[18-May-2026 18:05:26 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function getAllApplications() in C:\xampp\htdocs\project\admin.php:134
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\project\admin.php on line 134
+[18-May-2026 18:05:28 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function getAllApplications() in C:\xampp\htdocs\project\admin.php:134
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\project\admin.php on line 134

@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>НьюСкоуп - Инновационные решения</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Дополнительные стили для формы анкеты */
+        .application-form-section {
+            background: var(--light-bg);
+        }
+        
+        .application-form {
+            background: white;
+            padding: 40px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .application-form .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .application-form label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        
+        .application-form label.required::after {
+            content: " *";
+            color: var(--error-color);
+        }
+        
+        .application-form input,
+        .application-form select,
+        .application-form textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius);
+            font-family: 'Open Sans', sans-serif;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        
+        .application-form input:focus,
+        .application-form select:focus,
+        .application-form textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(74, 109, 229, 0.1);
+        }
+        
+        .application-form .has-error input,
+        .application-form .has-error select,
+        .application-form .has-error textarea {
+            border-color: var(--error-color);
+        }
+        
+        .error-message {
+            color: var(--error-color);
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+        
+        .radio-group {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+        
+        .radio-group div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .radio-group input[type="radio"] {
+            width: auto;
+        }
+        
+        select[multiple] {
+            height: 150px;
+        }
+        
+        .field-hint {
+            color: #888;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+        
+        .form-message {
+            padding: 15px;
+            border-radius: var(--radius);
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .form-message.success {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(40, 167, 69, 0.3);
+        }
+        
+        .form-message.error {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--error-color);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+        }
+        
+        .credentials-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: var(--radius);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .credentials-box code {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 1.1rem;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .submit-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .auth-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        
+        .auth-modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: var(--radius);
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+        }
+        
+        .auth-modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .auth-modal-close:hover {
+            color: #333;
+        }
+        
+        .auth-modal .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .auth-modal input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius);
+        }
+        
+        .edit-link {
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        .edit-link a {
+            color: var(--primary-color);
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- Шапка с навигацией и видео -->
+    <header class="header">
+        <div class="video-background">
+            <video autoplay muted loop playsinline id="header-video">
+                <source src="assets/videos/159021-818026286.mp4" type="video/mp4">
+                Ваш браузер не поддерживает видео.
+            </video>
+            <div class="video-overlay"></div>
+        </div>
+        
+        <nav class="navbar">
+            <div class="nav-container">
+                <a href="#" class="logo">НьюСкоуп</a>
+                
+                <button class="mobile-menu-btn" id="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <ul class="nav-menu" id="nav-menu">
+                    <li class="nav-item"><a href="#home" class="nav-link active">Главная</a></li>
+                    <li class="nav-item"><a href="#about" class="nav-link">О нас</a></li>
+                    <li class="nav-item dropdown">
+                        <a href="#services" class="nav-link dropdown-toggle">
+                            Услуги <i class="fas fa-chevron-down"></i>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#projects">Веб-разработка</a></li>
+                            <li><a href="#projects">Мобильные приложения</a></li>
+                            <li><a href="#contact">Консалтинг</a></li>
+                            <li><a href="#contact">Поддержка</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a href="#projects" class="nav-link">Проекты</a></li>
+                    <li class="nav-item"><a href="#application" class="nav-link">Анкета</a></li>
+                    <li class="nav-item"><a href="#contact" class="nav-link">Контакты</a></li>
+                </ul>
+            </div>
+        </nav>
+        
+        <div class="header-content">
+            <h1 class="header-title">Инновационные технологические решения</h1>
+            <p class="header-subtitle">Мы создаем будущее, сочетая креативность с передовыми технологиями для достижения выдающихся результатов</p>
+            <a href="#application" class="header-btn">Заполнить анкету</a>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <!-- Секция о нас -->
+        <section class="section about-section" id="about">
+            <div class="container">
+                <h2 class="section-title">О нашей компании</h2>
+                <p class="section-description">Мы команда профессионалов, специализирующаяся на создании инновационных digital-решений для бизнеса любого масштаба. Наш опыт позволяет нам реализовывать проекты любой сложности.</p>
+                
+                <div class="features">
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <h3 class="feature-title">Быстрый запуск</h3>
+                        <p class="feature-text">Оптимизированные процессы разработки позволяют нам быстро выводить продукты на рынок.</p>
+                    </div>
+                    
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <h3 class="feature-title">Адаптивный дизайн</h3>
+                        <p class="feature-text">Все наши решения отлично работают на любых устройствах и экранах.</p>
+                    </div>
+                    
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3 class="feature-title">Аналитика и рост</h3>
+                        <p class="feature-text">Мы помогаем нашим клиентам расти с помощью data-driven решений.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Секция слайдера проектов -->
+        <section class="section projects-section" id="projects">
+            <div class="container">
+                <h2 class="section-title">Наши проекты</h2>
+                <p class="section-description">Посмотрите примеры наших последних работ и достижений в различных отраслях.</p>
+                
+                <div class="slider-container">
+                    <div class="slider" id="projects-slider">
+                        <div class="slide active">
+                            <div class="slide-content">
+                                <h3>Корпоративный портал</h3>
+                                <p>Разработка комплексной системы управления для крупной производственной компании.</p>
+                                <div class="tech-tags">
+                                    <span>React</span>
+                                    <span>Node.js</span>
+                                    <span>MongoDB</span>
+                                </div>
+                            </div>
+                            <div class="slide-image">
+                                <img src="assets/images/image.png" alt="Корпоративный портал">
+                            </div>
+                        </div>
+                        
+                        <div class="slide">
+                            <div class="slide-content">
+                                <h3>Мобильное приложение для фитнеса</h3>
+                                <p>Создание кроссплатформенного приложения с персонализированными тренировками и отслеживанием прогресса.</p>
+                                <div class="tech-tags">
+                                    <span>React Native</span>
+                                    <span>Firebase</span>
+                                    <span>Redux</span>
+                                </div>
+                            </div>
+                            <div class="slide-image">
+                                <img src="assets/images/large.jpg" alt="Фитнес приложение">
+                            </div>
+                        </div>
+                        
+                        <div class="slide">
+                            <div class="slide-content">
+                                <h3>Интернет-магазин премиум класса</h3>
+                                <p>Разработка высоконагруженной платформы электронной коммерции с интеграцией платежных систем и CRM.</p>
+                                <div class="tech-tags">
+                                    <span>Vue.js</span>
+                                    <span>Laravel</span>
+                                    <span>MySQL</span>
+                                </div>
+                            </div>
+                            <div class="slide-image">
+                                <img src="assets/images/2hes4dottod2xuqo7sr499u310bgrof1.webp" alt="Интернет-магазин">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="slider-controls">
+                        <button class="slider-btn prev-btn" id="prev-slide">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <div class="slider-dots" id="slider-dots">
+                            <span class="dot active" data-slide="0"></span>
+                            <span class="dot" data-slide="1"></span>
+                            <span class="dot" data-slide="2"></span>
+                        </div>
+                        <button class="slider-btn next-btn" id="next-slide">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Секция анкеты (новая) -->
+        <section class="section application-form-section" id="application">
+            <div class="container">
+                <h2 class="section-title">Анкета разработчика</h2>
+                <p class="section-description">Заполните анкету для вступления в нашу команду разработчиков. После заполнения вы получите логин и пароль для редактирования данных.</p>
+                
+                <!-- Контейнер для данных входа -->
+                <div id="credentials-container" class="credentials-box hidden">
+                    <h3>✅ Регистрация успешна!</h3>
+                    <p>Ваши данные для входа:</p>
+                    <p><strong>Логин:</strong> <code id="generated-login"></code></p>
+                    <p><strong>Пароль:</strong> <code id="generated-password"></code></p>
+                    <p class="edit-link" id="edit-link"><a href="edit.php">✏️ Редактировать анкету</a></p>
+                    <p class="field-hint">Сохраните эти данные! Они понадобятся для редактирования.</p>
+                </div>
+                
+                <!-- Форма анкеты -->
+                <form id="application-form" class="application-form" method="POST">
+                    <?php echo csrfField(); ?>
+                    
+                    <div class="form-group">
+                        <label for="full_name" class="required">ФИО:</label>
+                        <input type="text" id="full_name" name="full_name" placeholder="Иванов Иван Иванович" required maxlength="150">
+                        <div class="field-hint">Только русские и английские буквы, пробелы и дефисы</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone" class="required">Телефон:</label>
+                        <input type="tel" id="phone" name="phone" placeholder="+7 (999) 123-45-67" required>
+                        <div class="field-hint">Только цифры, символы +, - и пробелы</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email" class="required">Email:</label>
+                        <input type="email" id="email" name="email" placeholder="ivanov@example.com" required>
+                        <div class="field-hint">Введите корректный email адрес</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="birth_date" class="required">Дата рождения:</label>
+                        <input type="date" id="birth_date" name="birth_date" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="required">Пол:</label>
+                        <div class="radio-group">
+                            <div>
+                                <input type="radio" id="male" name="gender" value="male" required>
+                                <label for="male">Мужской</label>
+                            </div>
+                            <div>
+                                <input type="radio" id="female" name="gender" value="female">
+                                <label for="female">Женский</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="languages" class="required">Любимые языки программирования:</label>
+                        <select id="languages" name="languages[]" multiple size="6" required>
+                            <option value="Pascal">Pascal</option>
+                            <option value="C">C</option>
+                            <option value="C++">C++</option>
+                            <option value="JavaScript">JavaScript</option>
+                            <option value="PHP">PHP</option>
+                            <option value="Python">Python</option>
+                            <option value="Java">Java</option>
+                            <option value="Haskell">Haskell</option>
+                            <option value="Clojure">Clojure</option>
+                            <option value="Prolog">Prolog</option>
+                            <option value="Scala">Scala</option>
+                            <option value="Go">Go</option>
+                        </select>
+                        <div class="field-hint">Удерживайте Ctrl (Cmd на Mac) для выбора нескольких языков</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="biography">Биография:</label>
+                        <textarea id="biography" name="biography" rows="5" placeholder="Расскажите немного о себе..."></textarea>
+                        <div class="field-hint">Необязательное поле. Максимум 5000 символов.</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="contract" name="contract" required>
+                            <label for="contract" class="required">Я ознакомлен(а) с условиями контракта</label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" id="submit-btn" class="submit-btn">
+                        <span>Отправить анкету</span>
+                        <div class="spinner hidden" id="form-spinner"></div>
+                    </button>
+                    
+                    <div id="form-message" class="form-message hidden"></div>
+                </form>
+                
+                <!-- Fallback: если JS отключен, форма отправится на index.php -->
+                <noscript>
+                    <div class="form-message error" style="margin-top: 20px;">
+                        ⚠️ В вашем браузере отключен JavaScript. Форма будет отправлена традиционным способом.
+                    </div>
+                </noscript>
+            </div>
+        </section>
+        
+        <!-- Секция контактов -->
+        <!-- <section class="section contact-section" id="contact">
+            <div class="container">
+                <h2 class="section-title">Свяжитесь с нами</h2>
+                <p class="section-description">Остались вопросы? Напишите нам, и наш менеджер свяжется с вами.</p>
+                
+                <div class="contact-container">
+                    <div class="contact-info">
+                        <h3>Наши контакты</h3>
+                        <div class="contact-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div>
+                                <h4>Адрес</h4>
+                                <p>г. Краснодар, ул. Северная, д. 143</p>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-phone"></i>
+                            <div>
+                                <h4>Телефон</h4>
+                                <p>+7 (495) 123-45-67</p>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <div>
+                                <h4>Email</h4>
+                                <p>info@newscope.ru</p>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <h4>Часы работы</h4>
+                                <p>Пн-Пт: 9:00 - 18:00</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-form-container">
+                        <form class="contact-form" id="contact-form">
+                            <div class="form-group">
+                                <label for="contact-name">Имя *</label>
+                                <input type="text" id="contact-name" name="name" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="contact-email">Email *</label>
+                                <input type="email" id="contact-email" name="email" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="contact-phone">Телефон</label>
+                                <input type="tel" id="contact-phone" name="phone">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="service">Услуга</label>
+                                <select id="service" name="service">
+                                    <option value="">Выберите услугу</option>
+                                    <option value="web">Веб-разработка</option>
+                                    <option value="mobile">Мобильные приложения</option>
+                                    <option value="consulting">Консалтинг</option>
+                                    <option value="support">Поддержка</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="contact-message">Сообщение *</label>
+                                <textarea id="contact-message" name="message" rows="5" required></textarea>
+                            </div>
+                            
+                            <div class="form-group checkbox-group">
+                                <input type="checkbox" id="contact-agree" name="agree" required>
+                                <label for="contact-agree">Я согласен на обработку персональных данных</label>
+                            </div>
+                            
+                            <button type="submit" class="submit-btn">Отправить сообщение</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section> -->
+    </main>
+
+    <footer class="footer">
+        <div class="container" id="contact">
+            <div class="footer-content">
+                <div class="footer-logo">НьюСкоуп</div>
+                <p class="footer-text">Инновационные технологические решения для вашего бизнеса</p>
+                <div class="footer-social">
+                    <a href="#"><i class="fab fa-vk"></i></a>
+                    <a href="#"><i class="fab fa-telegram"></i></a>
+                    <a href="#"><i class="fab fa-github"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                </div>
+                <p class="footer-copyright">© 2025 НьюСкоуп</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/main.js"></script>
+</body>
+</html>
