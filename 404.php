@@ -90,7 +90,7 @@ header('HTTP/1.0 404 Not Found');
             К сожалению, запрашиваемая страница не существует или была перемещена.<br>
             Проверьте правильность URL-адреса.
         </p>
-        <a href="index.php" class="home-link">← Вернуться на главную</a>
+        <a href="index.html" class="home-link">← Вернуться на главную</a>
     </div>
 </body>
 </html>

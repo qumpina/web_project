@@ -222,7 +222,7 @@ $language_stats = getLanguageStats($pdo);
         <div class="header">
             <h1>👑 Панель администратора</h1>
             <div>Вы вошли как: <strong><?php echo htmlspecialchars($auth_user); ?></strong>
-            <a href="index.php" style="margin-left: 15px; color: #667eea;">Выйти</a></div>
+            <a href="index.html" style="margin-left: 15px; color: #667eea;">Выйти</a></div>
         </div>
         
         <?php if ($message): ?>

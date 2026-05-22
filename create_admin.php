@@ -89,7 +89,7 @@ try {
         ";
     } else {
         showError("Ошибка при создании администратора", $e->getMessage());
-        echo "<p><a href='index.php'>Вернуться на главную</a></p>";
+        echo "<p><a href='index.html'>Вернуться на главную</a></p>";
     }
 }
 ?>
